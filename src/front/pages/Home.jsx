@@ -2,9 +2,42 @@ import React, { useEffect } from "react"
 import rigoImageUrl from "../assets/img/rigo-baby.jpg";
 import useGlobalReducer from "../hooks/useGlobalReducer.jsx";
 
+export const backend_url = import.meta.env.VITE_BACKEND_URL
+
+
 export const Home = () => {
 
 	const { store, dispatch } = useGlobalReducer()
+
+	const getUser = () => {
+		const opts = {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: "Bearer " + localStorage.getItem("token"),
+			},
+		};
+		fetch(backend_url + "api/user", opts)
+			.then((resp) => resp.json())
+			.then((data) => {
+				console.log(data, "get user data");
+				dispatch({ type: "update-user", payload: data });
+
+			})
+			.catch((err) => console.error(err));
+	}
+
+	const syncTokenFromLocalStorageStore = () => {
+		const token = localStorage.getItem("token");
+		console.log("aplication loaded");
+		if (token && token != "" && token != undefined)
+			setStore({ token: token });
+	}
+
+	useEffect(() => {
+		syncTokenFromLocalStorageStore()
+	}, [])
+
 
 	const loadMessage = async () => {
 		try {
@@ -12,7 +45,7 @@ export const Home = () => {
 
 			if (!backendUrl) throw new Error("VITE_BACKEND_URL is not defined in .env file")
 
-			const response = await fetch(backendUrl + "/api/hello")
+			const response = await fetch(backendUrl + "api/hello")
 			const data = await response.json()
 
 			if (response.ok) dispatch({ type: "set_hello", payload: data.message })
